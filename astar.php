@@ -10,6 +10,15 @@ class Case
 	public Case $down;
 }*/
 
+class PQtest extends SplPriorityQueue
+{
+    public function compare($priority1, $priority2)
+    {
+        if ($priority1 === $priority2) return 0;
+        return $priority1 > $priority2 ? -1 : 1;
+    }
+} 
+
 class Map
 {
 	private $pos;
@@ -80,7 +89,21 @@ class Map
 		return new Map($this->goal, $map, $this->step + 1, $this);
 	}
 
-	public function getHeuristic()
+	private $heuristic = null;
+
+		public function getHeuristic()
+	{
+		if (!is_null($this->heuristic))
+			return $this->heuristic;
+		else if (isset($options['L']))
+			return $this->get_Linear_conflict();
+		else if (isset($options['H']))
+			return $this->get_Hamming_distance();
+		else
+			return $this->get_Manhantan_distance();
+	}
+
+	public function get_Manhantan_distance()
 	{
 		$cur = $this->map;
 		$heuristic = 0;
@@ -94,8 +117,57 @@ class Map
 			$currentY = intval($currentPos / $this->len);
 			$heuristic += abs($wantedX - $currentX) + abs($wantedY - $currentY);
 		}
-		
+		$this->heuristic = intval($heuristic);
 		return intval($heuristic);
+	}
+
+	public function get_Hamming_distance()
+	{
+		$cur = $this->map;
+		$heuristic = 0;
+		foreach ($cur as $currentPos => $val) {
+			$wantedPos = array_search($val, $this->goal);
+
+			$wantedX = $wantedPos % $this->len;
+			$wantedY = intval($wantedPos / $this->len);
+
+			$currentX = $currentPos % $this->len;
+			$currentY = intval($currentPos / $this->len);
+			if ($wantedX != $currentX || $wantedY != $currentY)
+				$heuristic++;
+		}
+		$this->heuristic = intval($heuristic);
+		return intval($heuristic);
+	}
+
+	public function get_Linear_conflict()
+	{
+		$cur = $this->map;
+		$heuristic = 0;
+		foreach ($cur as $currentPos => $val) {
+			$wantedPos = $this->getXY($val, $this->goal);
+
+			$wantedX = $wantedPos['x'];
+			$wantedY = $wantedPos['y'];
+
+			$currentPos = $this->getXY($val, $this->map);
+			$currentX = $currentPos['x'];
+			$currentY = $currentPos['y'];
+			if ($wantedX != $currentX || $wantedY != $currentY)
+				$heuristic += 2;
+		}
+		$this->heuristic = intval($heuristic);
+		return intval($heuristic);
+	}
+
+	public function getXY($val, $map)
+	{
+		$pos = array_search($val, $map);
+
+		$x = $pos % $this->len;
+		$y = intval($pos / $this->len);
+
+		return ['x' => $x, 'y' => $y];
 	}
 
 	public function getGH()
@@ -110,31 +182,37 @@ class Map
 		$i = 0;
 		$current = $this;
 		$ignoreStack = [];
-		while (is_null($find) && $i++ < 999)
+		$queue = new PQtest();
+		while (is_null($find) && $i++ < 9999)
 		{
-			$vals = array_merge($vals, [
+			$vals = [
 				$current->getLeft(),
 				$current->getRight(),
 				$current->getTop(),
 				$current->getDown(),
-			]);
+			];
 			$vals = array_filter($vals);
+			
 			$vals = array_filter($vals, function($k) use ($ignoreStack) {
 				    return !in_array(implode(' ', $k->map), $ignoreStack);
 				});
-			if (0 === count($vals))
+
+			foreach ($vals as $value) {
+				$queue->insert($value, $value->getGH());
+			}
+			if (0 === $queue->count())
 			{
 				echo 'impossible';
 				return ;
 			}
-			usort($vals, function($a, $b){return $a->getHeuristic() - $b->getHeuristic();});
-
-			if (0 == $vals[0]->getHeuristic())
+			
+			$val = $queue->extract();
+			if (0 == $val->getHeuristic())
 			{
-				$find = $vals[0];
+				$find = $val;
 			}
-			$current = $vals[0];
-			$ignoreStack[] = implode(' ', $vals[0]->map);
+			$current = $val;
+			$ignoreStack[] = implode(' ', $val->map);
 		}
 		if ($find)
 			$find->remote();
@@ -148,6 +226,18 @@ class Map
 	}
 }
 
+$options = getopt("hMHL");
+// var_dump($options);
+if (isset($options['h']))
+{
+	echo "avable heuristique Manhattan Distance -M, Hamming Distance -H, Linear Conflict -L \n";
+	die;
+}
+else if ((isset($options['M'])) && (isset($options['H'])) || (isset($options['M'])) && (isset($options['L'])) || (isset($options['H'])) && (isset($options['L'])))
+{
+	echo "ashhole one heuristic argument only ... \n";
+	die;
+}
 
 
 $handle = fopen("php://stdin", "r");
@@ -156,6 +246,10 @@ $fulltable = [];
 if ($handle) {
     while (($line = fgets($handle)) !== false) {
     	$commentLine = explode('#', $line);
+    	if (isset($commentLine[1]))
+    	{
+    		echo $commentLine[1];	
+    	}
     	$line = trim($commentLine[0]);
     	if(strlen($line))
     	{
@@ -187,7 +281,11 @@ if ($handle) {
 var_dump($fulltable);
 
 // $goal = "0123456789ABCDEFGHIJKLMNO";
-$goal = str_split("012345678");
+$goal = str_split("123804765");
 // $goal = "3120";
 $map = new Map($goal, $fulltable);
-$map->explore();
+if ($map->getHeuristic() % 2 == 0)
+{
+	echo $map->getHeuristic().PHP_EOL;
+	$map->explore();
+}
