@@ -10,6 +10,71 @@ class Case
 	public Case $down;
 }*/
 
+function escargo($size)
+{
+	$tab = [];
+
+	$sens = 1;
+
+	$i = 0;
+
+	
+	$c = 1;
+	$pos = 0;
+	$step = 1;
+	$stepz = 0;
+	$lastpos = null;
+	while (empty($tab[$pos]))
+	{
+		// 1 2 3 4
+		for ($i=0; $i < $size - $step; $i++) { 
+			$tab[$pos++] = $c++;
+		}
+
+		// 5 6 7 8
+		for ($i=0; $i < $size - $step; $i++) { 
+			$tab[$pos] = $c++;
+			$pos = $pos + $size;
+		}
+
+		// 9 10 11 12
+		for ($i=0; $i < $size - $step; $i++) { 
+			$tab[$pos] = $c++;
+			$pos--;
+		}
+
+		// 13 14 15 16
+		for ($i=0; $i < $size - $step; $i++) { 
+			$tab[$pos] = $c++;
+			$lastpos = $pos;
+			$pos = $pos - $size;
+		}
+		
+		$stepz += 1 + $size;
+		$pos = $stepz;
+		$step+=2;
+	}
+	if ($size != 3)
+		$tab[intval(($size + 1) * $size / 2) - 1] = '0';
+	else
+		$tab[4] = 0;
+	ksort($tab);
+	return $tab;
+}
+
+function dump_map($map, $size)
+{
+	//$size = sqrt(count($map));
+	$len = $size * $size;
+	for ($i=0; $i < $len; $i++) {
+		printf("%'.02d ", $map[$i]);
+		if (0 == ($i + 1) % $size)
+		{
+			echo "\n";
+		}
+	}
+}
+
 class PQtest extends SplPriorityQueue
 {
     public function compare($priority1, $priority2)
@@ -253,7 +318,9 @@ class Map
 	{
 		if ($this->parent)
 			$this->parent->remote();
-		echo implode(' ', $this->map).' GH:'.$this->getHeuristic() . ' '.$this->step."\n";
+		echo "\n";
+		dump_map($this->map, intval($this->len));
+		//echo implode(' ', $this->map).' GH:'.$this->getHeuristic() . ' '.$this->step."\n";
 	}
 }
 
@@ -311,10 +378,13 @@ if ($handle) {
     fclose($handle);
 }
 
-$goal = range(0, 8);
-$goal = array_map('strval',$goal);
+$goal = escargo($size);
+dump_map($goal, $size);
+echo "\n\n";
+dump_map($fulltable, $size);
+
+//dump_map($map, 10);
 // /$goal = str_split("123804765");
 // $goal = "3120";
 $map = new Map($goal, $fulltable);
-	echo $map->getHeuristic().PHP_EOL;
 	$map->explore();
