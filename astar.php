@@ -323,7 +323,6 @@ class Map
 		//echo implode(' ', $this->map).' GH:'.$this->getHeuristic() . ' '.$this->step."\n";
 	}
 }
-
 $options = getopt("hMHL");
 // var_dump($options);
 if (isset($options['h']))
@@ -336,8 +335,6 @@ else if ((isset($options['M'])) && (isset($options['H'])) || (isset($options['M'
 	echo "ashhole one heuristic argument only ... \n";
 	die;
 }
-
-
 $handle = fopen("php://stdin", "r");
 $size = null;
 $fulltable = [];
@@ -372,16 +369,65 @@ if ($handle) {
 				$fulltable = array_merge($fulltable, $tab);
 			}
 		}
-
     }
-
     fclose($handle);
 }
+
+
+function check_solvability($fulltable, $size)
+{
+
+	$len = $size * $size;
+	$inversions = 0;
+
+	for ($i=0; $i < $len; $i++) {
+		$search = $fulltable[$i];
+
+		for ($y=$i + 1; $y < $len; $y++) {
+			$finded = $fulltable[$y];
+			if ($search > $finded)
+			{
+				$inversions++;
+			}
+		}
+	}
+	echo '-->'.$inversions.'<--'."\n";
+	echo 'Il y a '.intval($size / 2).'lignes'."\n";
+	if (($size % 2 == 1) && ($inversions % 2 == 0))
+	{
+		echo "impossible \n";
+		die;
+	}
+	else if (($size % 2 == 1) && ($inversions % 2 == 1))
+	{
+		echo "possible \n";
+		die;
+	}
+	else if (($size % 2 == 0) && (intval($size / 2) % 2 == 1) && ($inversions % 2 == 1))
+	{
+		echo "possible \n";
+		die;
+	}
+	else if (($size % 2 == 0) && (intval($size / 2) % 2 == 0) && ($inversions % 2 == 1))
+	{
+		echo "possible \n";
+		die;
+	}
+	else
+	{
+		echo "impossible \n";
+		die;
+	}
+}
+
+
 
 $goal = escargo($size);
 dump_map($goal, $size);
 echo "\n\n";
 dump_map($fulltable, $size);
+check_solvability($fulltable, $size);
+die;
 
 //dump_map($map, 10);
 // /$goal = str_split("123804765");
