@@ -17,14 +17,66 @@ class PQtest extends SplPriorityQueue
         if ($priority1 === $priority2) return 0;
         return $priority1 > $priority2 ? -1 : 1;
     }
-} 
+}
+
+	function getLeft($mapobj)
+	{
+		if (0 == $mapobj->pos % $mapobj->len)
+			return (NULL);
+		$map = $mapobj->map;
+		$a = $map[$mapobj->pos];
+		$b = $map[$mapobj->pos - 1];
+		$map[$mapobj->pos - 1] = $a;
+		$map[$mapobj->pos] = $b;
+
+		return new Map($mapobj->goal, $map, $mapobj->step + 1, $mapobj);
+	}
+
+	function getRight($mapobj)
+	{
+		if (0 == ($mapobj->pos + 1) % $mapobj->len || $mapobj->pos >= $mapobj->len * $mapobj->len)
+			return (NULL);
+		$map = $mapobj->map;
+		$a = $map[$mapobj->pos];
+		$b = $map[$mapobj->pos + 1];
+		$map[$mapobj->pos + 1] = $a;
+		$map[$mapobj->pos] = $b;
+
+		return new Map($mapobj->goal, $map, $mapobj->step + 1, $mapobj);
+	}
+
+	function getTop($mapobj)
+	{
+		if (0 > $mapobj->pos - $mapobj->len)
+			return (NULL);
+		$map = $mapobj->map;
+		$a = $map[$mapobj->pos];
+		$b = $map[$mapobj->pos - $mapobj->len];
+		$map[$mapobj->pos - $mapobj->len] = $a;
+		$map[$mapobj->pos] = $b;
+
+		return new Map($mapobj->goal, $map, $mapobj->step + 1, $mapobj);
+	}
+
+	function getDown($mapobj)
+	{
+		if ($mapobj->pos + $mapobj->len >= $mapobj->len * $mapobj->len)
+			return (NULL);
+		$map = $mapobj->map;
+		$a = $map[$mapobj->pos];
+		$b = $map[$mapobj->pos + $mapobj->len];
+		$map[$mapobj->pos + $mapobj->len] = $a;
+		$map[$mapobj->pos] = $b;
+
+		return new Map($mapobj->goal, $map, $mapobj->step + 1, $mapobj);
+	}
 
 class Map
 {
-	private $pos;
-	private $len;
+	public $pos;
+	public $len;
 	public $map;
-	private $step;
+	public $step;
 
 	public function __construct($goal, $current, $step = 0, $parent = NULL)
 	{
@@ -37,59 +89,7 @@ class Map
 		//echo $this->map.' '.$this->pos."\n";
 	}
 
-	public function getLeft()
-	{
-		if (0 == $this->pos % $this->len)
-			return (NULL);
-		$map = $this->map;
-		$a = $map[$this->pos];
-		$b = $map[$this->pos - 1];
-		$map[$this->pos - 1] = $a;
-		$map[$this->pos] = $b;
-
-		return new Map($this->goal, $map, $this->step + 1, $this);
-	}
-
-	public function getRight()
-	{
-		if (0 == ($this->pos + 1) % $this->len || $this->pos >= $this->len * $this->len)
-			return (NULL);
-		$map = $this->map;
-		$a = $map[$this->pos];
-		$b = $map[$this->pos + 1];
-		$map[$this->pos + 1] = $a;
-		$map[$this->pos] = $b;
-
-		return new Map($this->goal, $map, $this->step + 1, $this);
-	}
-
-	public function getTop()
-	{
-		if (0 > $this->pos - $this->len)
-			return (NULL);
-		$map = $this->map;
-		$a = $map[$this->pos];
-		$b = $map[$this->pos - $this->len];
-		$map[$this->pos - $this->len] = $a;
-		$map[$this->pos] = $b;
-
-		return new Map($this->goal, $map, $this->step + 1, $this);
-	}
-
-	public function getDown()
-	{
-		if ($this->pos + $this->len >= $this->len * $this->len)
-			return (NULL);
-		$map = $this->map;
-		$a = $map[$this->pos];
-		$b = $map[$this->pos + $this->len];
-		$map[$this->pos + $this->len] = $a;
-		$map[$this->pos] = $b;
-
-		return new Map($this->goal, $map, $this->step + 1, $this);
-	}
-
-	private $heuristic = null;
+	public $heuristic = null;
 
 		public function getHeuristic()
 	{
@@ -183,23 +183,51 @@ class Map
 		$current = $this;
 		$ignoreStack = [];
 		$queue = new PQtest();
+
+		$morebig = 0;
 		while (is_null($find))
 		{
 			$vals = [
-				$current->getLeft(),
-				$current->getRight(),
-				$current->getTop(),
-				$current->getDown(),
+				getLeft($current),
+				getRight($current),
+				getTop($current),
+				getDown($current),
 			];
-			$vals = array_filter($vals);
-			
-			$vals = array_filter($vals, function($k) use ($ignoreStack) {
+
+			$vals1 = array_filter($vals);
+			$vals = null;
+			$vals = $vals1;
+			$vals1 = null;
+
+			$vals1 = array_filter($vals, function($k) use ($ignoreStack) {
 				    return !in_array(implode(' ', $k->map), $ignoreStack);
 				});
+			
+			
+			$vals = null;
+			$vals = $vals1;
+			$vals1 = null;
 
+			$ignoreStack2 = array_slice($ignoreStack, -1000);
+			$ignoreStack = null;
+			$ignoreStack = $ignoreStack2;
+			$ignoreStack2 = null;
+			
 			foreach ($vals as $value) {
-				$queue->insert($value, $value->getGH());
+
+				if ($queue->count() < 1000
+				    || $morebig > $value->getGH()
+			)
+				{
+					if ($value->getGH() > $morebig)
+					{
+						$morebig = $value->getGH();
+					}
+					$queue->insert($value, $value->getGH());
+				}
 			}
+			$vals = null;
+
 			if (0 === $queue->count())
 			{
 				echo 'impossible';
@@ -211,8 +239,11 @@ class Map
 			{
 				$find = $val;
 			}
+
 			$current = $val;
+
 			$ignoreStack[] = implode(' ', $val->map);
+			$val = null;
 		}
 		if ($find)
 			$find->remote();
@@ -280,7 +311,7 @@ if ($handle) {
     fclose($handle);
 }
 
-$goal = range(0, 15);
+$goal = range(0, 8);
 $goal = array_map('strval',$goal);
 // /$goal = str_split("123804765");
 // $goal = "3120";
