@@ -183,7 +183,7 @@ class Map
 		$current = $this;
 		$ignoreStack = [];
 		$queue = new PQtest();
-		while (is_null($find) && $i++ < 9999)
+		while (is_null($find))
 		{
 			$vals = [
 				$current->getLeft(),
@@ -265,8 +265,10 @@ if ($handle) {
 			else
 			{
 				$tab = explode(' ', $line);
-				if (count($tab) != $size)
+				$tab = array_filter($tab, function($k) {return $k !== '';});
+				if (count($tab) != $size )
 				{
+					echo count($tab);
 					echo 'error2'."\n"; die;
 				}
 				$fulltable = array_merge($fulltable, $tab);
@@ -278,14 +280,10 @@ if ($handle) {
     fclose($handle);
 }
 
-var_dump($fulltable);
-
-// $goal = "0123456789ABCDEFGHIJKLMNO";
-$goal = str_split("123804765");
+$goal = range(0, 15);
+$goal = array_map('strval',$goal);
+// /$goal = str_split("123804765");
 // $goal = "3120";
 $map = new Map($goal, $fulltable);
-if ($map->getHeuristic() % 2 == 0)
-{
 	echo $map->getHeuristic().PHP_EOL;
 	$map->explore();
-}
