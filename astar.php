@@ -45,10 +45,14 @@ function escargo($size)
 		$pos = $stepz;
 		$step+=2;
 	}
-	if ($size != 3)
-		$tab[intval(($size + 1) * $size / 2) - 1] = '0';
-	else
-		$tab[4] = 0;
+	$len = $size * $size - 1;
+	for ($i=0; $i < $len; $i++) { 
+		if (!isset($tab[$i]))
+		{
+			$tab[$i] = '0';
+			break;
+		}
+	}
 	ksort($tab);
 	return $tab;
 }
@@ -364,9 +368,17 @@ if ($handle) {
     fclose($handle);
 }
 
-
-function check_solvability($fulltable, $size)
+function normalpos_to_snailpos($x, $size)
 {
+	$model = escargo($size);
+	return array_search($x, $model);
+}
+
+function snailpos_to_normalpos($x, $size)
+{
+	$model = escargo($size);
+	return $model[$x];
+}
 
 	$len = $size * $size;
 	$inversions = 0;
