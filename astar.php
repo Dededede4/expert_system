@@ -46,13 +46,19 @@ function escargo($size)
 		$step+=2;
 	}
 	$len = $size * $size - 1;
+	$find = false;
 	for ($i=0; $i < $len; $i++) { 
 		if (!isset($tab[$i]))
 		{
 			$tab[$i] = '0';
+			$find = true;
 			break;
 		}
 	}
+	if (false == $find)
+	{
+		$tab[intval(($size + 1) * $size / 2) - 1] = '0';
+	}	
 	ksort($tab);
 	return $tab;
 }
@@ -379,7 +385,6 @@ function snailpos_to_normalpos($x, $size)
 	$model = escargo($size);
 	return $model[$x];
 }
-
 
 function check_solvability($fulltable, $size)
 {
