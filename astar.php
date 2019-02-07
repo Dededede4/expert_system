@@ -392,12 +392,13 @@ function check_solvability($fulltable, $size)
 	$inversions = 0;
 
 	for ($i=0; $i < $len; $i++) {
-		$search = $fulltable[$i];
+		$search = $fulltable[normalpos_to_snailpos($i, $size)];
 
 		for ($y=$i + 1; $y < $len; $y++) {
-			$finded = $fulltable[$y];
-			if ($search > $finded)
+			$finded = $fulltable[normalpos_to_snailpos($y, $size)];
+			if ($search > $finded && $finded > 0)
 			{
+				// echo $search.' > '.$finded.PHP_EOL;
 				$inversions++;
 			}
 		}
@@ -406,39 +407,49 @@ function check_solvability($fulltable, $size)
 	echo 'Il y a '.intval($size / 2).'lignes'."\n";
 	if (($size % 2 == 1) && ($inversions % 2 == 0))
 	{
-		//echo "impossible44 \n";
-		return false;
+		// echo "impossible impair\n";
+		return 1;
 	}
 	else if (($size % 2 == 1) && ($inversions % 2 == 1))
 	{
-		//echo "possible11 \n";
-		return true;
+		// echo "possible impair\n";
+		return 2;
 	}
 	else if (($size % 2 == 0) && ($inversions % 2 == 1))
 	{
-		//echo "impossible22 \n";
-		return false;
+		// echo "impossible pair\n";
+		return 3;
 	}
 	else if (($size % 2 == 0) && ($inversions % 2 == 0))
 	{
-		//echo "possible33 \n";
-		return true;
+		// echo "possible pair\n";
+		return 4;
 	}
 	else
 	{
-		echo "impossible55 \n";
-		return false;
+		echo "impossible autre\n";
+		die;
 	}
 }
 
 
-
+$solvable = 0;
 $goal = escargo($size);
 dump_map($fulltable, $size);
-$solvable = check_solvability($fulltable, $size);
+if (check_solvability($fulltable, $size) != check_solvability($goal, $size))
+{
+	if ($size % 2 == 1)
+		$solvable = 1;
+}
+else
+{
+	if ($size % 2 == 0)
+		$solvable = 1;
+}
+
 if ($solvable)
 {
-	echo 'This puzzle is solvable :'."\n";
+	echo 'This puzzle is solvable'."\n";
 	$map = new Map($goal, $fulltable);
 	$map->explore();
 }
@@ -446,4 +457,3 @@ else
 {
 	echo 'This puzze is unsolvable.'."\n";
 }
-
