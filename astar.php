@@ -380,6 +380,9 @@ function snailpos_to_normalpos($x, $size)
 	return $model[$x];
 }
 
+
+function check_solvability($fulltable, $size)
+{
 	$len = $size * $size;
 	$inversions = 0;
 
