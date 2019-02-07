@@ -1,14 +1,5 @@
 <?php
-/*
-class Case
-{
-	public $val;
-
-	public Case $top;
-	public Case $left;
-	public Case $right;
-	public Case $down;
-}*/
+ini_set('memory_limit',0);
 
 function escargo($size)
 {
@@ -395,42 +386,44 @@ function check_solvability($fulltable, $size)
 	echo 'Il y a '.intval($size / 2).'lignes'."\n";
 	if (($size % 2 == 1) && ($inversions % 2 == 0))
 	{
-		echo "impossible \n";
-		die;
+		//echo "impossible44 \n";
+		return false;
 	}
 	else if (($size % 2 == 1) && ($inversions % 2 == 1))
 	{
-		echo "possible \n";
-		die;
+		//echo "possible11 \n";
+		return true;
 	}
-	else if (($size % 2 == 0) && (intval($size / 2) % 2 == 1) && ($inversions % 2 == 1))
+	else if (($size % 2 == 0) && ($inversions % 2 == 1))
 	{
-		echo "possible \n";
-		die;
+		//echo "impossible22 \n";
+		return false;
 	}
-	else if (($size % 2 == 0) && (intval($size / 2) % 2 == 0) && ($inversions % 2 == 1))
+	else if (($size % 2 == 0) && ($inversions % 2 == 0))
 	{
-		echo "possible \n";
-		die;
+		//echo "possible33 \n";
+		return true;
 	}
 	else
 	{
-		echo "impossible \n";
-		die;
+		echo "impossible55 \n";
+		return false;
 	}
 }
 
 
 
 $goal = escargo($size);
-dump_map($goal, $size);
-echo "\n\n";
 dump_map($fulltable, $size);
-check_solvability($fulltable, $size);
-die;
-
-//dump_map($map, 10);
-// /$goal = str_split("123804765");
-// $goal = "3120";
-$map = new Map($goal, $fulltable);
+$solvable = check_solvability($fulltable, $size);
+if ($solvable)
+{
+	echo 'This puzzle is solvable :'."\n";
+	$map = new Map($goal, $fulltable);
 	$map->explore();
+}
+else
+{
+	echo 'This puzze is unsolvable.'."\n";
+}
+
