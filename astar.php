@@ -1,7 +1,7 @@
 <?php
 ini_set('memory_limit', '4G');
 
-function escargo($size)
+function escargo($size, $zero = true)
 {
 	$tab = [];
 
@@ -50,14 +50,14 @@ function escargo($size)
 	for ($i=0; $i < $len; $i++) { 
 		if (!isset($tab[$i]))
 		{
-			$tab[$i] = '0';
+			$tab[$i] = $zero ? '0' : $size * $size;
 			$find = true;
 			break;
 		}
 	}
 	if (false == $find)
 	{
-		$tab[intval(($size + 1) * $size / 2) - 1] = '0';
+		$tab[intval(($size + 1) * $size / 2) - 1] = $zero ? '0' : $size * $size;
 	}	
 	ksort($tab);
 	return $tab;
