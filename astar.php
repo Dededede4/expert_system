@@ -1,5 +1,5 @@
 <?php
-ini_set('memory_limit',0);
+ini_set('memory_limit', '4G');
 
 function escargo($size)
 {
@@ -286,7 +286,7 @@ class Map
 
 			if (0 === $queue->count())
 			{
-				echo 'impossible';
+				echo 'Queue too small';
 				return ;
 			}
 			
