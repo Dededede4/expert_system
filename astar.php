@@ -368,7 +368,7 @@ if ($handle) {
 				if (count($tab) != $size )
 				{
 					echo count($tab);
-					echo 'error2'."\n"; die;
+					echo 'Bad size lenght'."\n"; die;
 				}
 				$fulltable = array_merge($fulltable, $tab);
 			}
@@ -381,7 +381,11 @@ if (count(array_count_values($fulltable)) != $size * $size)
 	echo 'Duplicate number'.PHP_EOL;
 	die;
 }
-
+if (count($fulltable) == 0)
+{
+	echo 'Empty map'.PHP_EOL;
+	die;
+}
 if (max($fulltable) != $size * $size - 1)
 {
 	echo 'Max value'.PHP_EOL;
