@@ -321,6 +321,7 @@ class Map
 			$this->parent->remote();
 		echo "\n";
 		dump_map($this->map, intval($this->len));
+		echo ("f(x) = g(x) + h(x) = ".$this->step.' + '.$this->getHeuristic().' = '.($this->step + $this->getHeuristic()).PHP_EOL);
 		//echo implode(' ', $this->map).' GH:'.$this->getHeuristic() . ' '.$this->step."\n";
 	}
 }
@@ -353,9 +354,9 @@ if ($handle) {
 			{
 					$size = $line;
 			}
-			else if (is_null($size))
+			else if (is_null($size) || $size < 3)
 			{
-				echo "error1"."\n";
+				echo "Can't resolve a puzzle with size lower than 2. It says so in the help. Dummy.\n";
 				die;
 			}
 			else
@@ -372,6 +373,17 @@ if ($handle) {
 		}
     }
     fclose($handle);
+}
+if (count(array_count_values($fulltable)) != $size * $size)
+{
+	echo 'Duplicate number'.PHP_EOL;
+	die;
+}
+
+if (max($fulltable) != $size * $size - 1)
+{
+	echo 'Max value'.PHP_EOL;
+	die;
 }
 
 function normalpos_to_snailpos($x, $size)
@@ -403,31 +415,15 @@ function check_solvability_pair($fulltable, $size)
 			}
 		}
 	}
-	echo '-->'.$inversions.'<--'."\n";
-	echo 'Il y a '.intval($size / 2).'lignes'."\n";
-	if (($size % 2 == 1) && ($inversions % 2 == 0))
-	{
-		echo "impossible impair\n";
-		return 1;
-	}
-	else if (($size % 2 == 1) && ($inversions % 2 == 1))
-	{
-		echo "possible impair\n";
-		return 2;
-	}
-	else if (($size % 2 == 0) && ($inversions % 2 == 1))
-	{
-		echo "impossible pair\n";
+	// echo '-->'.$inversions.'<--'."\n";
+	// echo 'Il y a '.intval($size / 2).'lignes'."\n";
+	if (($size % 2 == 0) && ($inversions % 2 == 1))
 		return 3;
-	}
 	else if (($size % 2 == 0) && ($inversions % 2 == 0))
-	{
-		echo "possible pair\n";
 		return 4;
-	}
 	else
 	{
-		echo "impossible autre\n";
+		echo "unsolvable\n";
 		die;
 	}
 }
@@ -449,31 +445,15 @@ function check_solvability($fulltable, $size)
 			}
 		}
 	}
-	echo '-->'.$inversions.'<--'."\n";
-	echo 'Il y a '.intval($size / 2).'lignes'."\n";
+	// echo '-->'.$inversions.'<--'."\n";
+	// echo 'Il y a '.intval($size / 2).'lignes'."\n";
 	if (($size % 2 == 1) && ($inversions % 2 == 0))
-	{
-		// echo "impossible impair\n";
 		return 1;
-	}
 	else if (($size % 2 == 1) && ($inversions % 2 == 1))
-	{
-		// echo "possible impair\n";
 		return 2;
-	}
-	else if (($size % 2 == 0) && ($inversions % 2 == 1))
-	{
-		// echo "impossible pair\n";
-		return 3;
-	}
-	else if (($size % 2 == 0) && ($inversions % 2 == 0))
-	{
-		// echo "possible pair\n";
-		return 4;
-	}
 	else
 	{
-		echo "impossible autre\n";
+		echo "unsolvable\n";
 		die;
 	}
 }
@@ -493,8 +473,8 @@ else if(check_solvability_pair($fulltable, $size) == check_solvability_pair($goa
 if ($solvable)
 {
 	echo 'This puzzle is solvable'."\n";
-	// $map = new Map($goal, $fulltable);
-	// $map->explore();
+	$map = new Map($goal, $fulltable);
+	$map->explore();
 }
 else
 {
