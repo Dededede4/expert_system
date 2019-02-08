@@ -1,5 +1,7 @@
+#!/usr/bin/php
 <?php
 ini_set('memory_limit', '4G');
+error_reporting(0);
 
 function escargo($size, $zero = true)
 {
